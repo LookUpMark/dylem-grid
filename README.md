@@ -175,8 +175,6 @@ The Transformer model uses self-attention mechanisms:
 - No vanishing gradients
 - More interpretable attention patterns
 
-See [TRANSFORMER_README.md](TRANSFORMER_README.md) for detailed documentation.
-
 ### 3. Shared Training Utilities (training_utils.py)
 
 The `training_utils.py` module provides common functions used by both BiLSTM and Transformer models:
