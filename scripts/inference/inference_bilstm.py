@@ -3,14 +3,26 @@ Inference script for gesture recognition
 Load a trained model and make predictions on new data
 """
 
+import sys
+import os
+# Add project root to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import torch
 import pandas as pd
 import numpy as np
 from models.architectures.bilstm_model import GestureRNN
 from utils.data_processing import prepare_data
+from utils.display import (
+    print_header,
+    print_section,
+    print_subsection,
+    print_success,
+    print_info
+)
 
 
-def load_model(model_path='../../models/checkpoints/gesture_rnn_model.pth'):
+def load_model(model_path='models/checkpoints/gesture_rnn_model.pth'):
     """
     Load a trained model from file
     
@@ -81,28 +93,32 @@ def predict_gesture(model, data, label_encoder, device='cpu'):
 
 
 def main():
-    print("LOADING MODEL")
-    print("\n" * 2)
-    model, label_encoder, config = load_model('../../models/checkpoints/gesture_rnn_model.pth')
+    print_header("BiLSTM Inference — Model Loading")
     
-    print("\n" * 3)
-    print("MODEL CONFIGURATION")
-    print("\n" * 2)
-    print(f"  Input size: {config['input_size']}")
-    print(f"  Hidden size: {config['hidden_size']}")
-    print(f"  Num layers: {config['num_layers']}")
-    print(f"  Classes: {label_encoder.classes_}")
+    print_section("Loading Model")
+    model, label_encoder, config = load_model('models/checkpoints/gesture_rnn_model.pth')
+    print_success("Model loaded successfully")
     
-    print("\n" * 3)
-    print("USAGE INSTRUCTIONS")
-    print("\n" * 2)
-    print("To use this model for inference:")
-    print("1. Load your CSV data")
-    print("2. Apply the same preprocessing (see utils.data_preprocess)")
-    print("3. Apply the same PCA transformation")
-    print("4. Pad sequences to the same length as training data")
-    print("5. Call predict_gesture() with your data")
-    print("\n" * 3)
+    print_section("Model Configuration")
+    print_info(f"Input size: {config['input_size']}")
+    print_info(f"Hidden size: {config['hidden_size']}")
+    print_info(f"Number of layers: {config['num_layers']}")
+    print_info(f"Number of classes: {config['num_classes']}")
+    print_info(f"Classes: {', '.join(label_encoder.classes_)}")
+    
+    print_section("Usage Instructions")
+    print_subsection("To use this model for inference:")
+    print_info("1. Load your CSV data", indent=1)
+    print_info("2. Apply the same preprocessing (utils.data_preprocess)", indent=1)
+    print_info("3. Apply the same PCA transformation (95% variance)", indent=1)
+    print_info("4. Pad sequences to the same length as training data", indent=1)
+    print_info("5. Call predict_gesture() with your data", indent=1)
+    print()
+    print_subsection("Example:")
+    print("  from inference_bilstm import load_model, predict_gesture")
+    print("  model, label_encoder, config = load_model()")
+    print("  predictions, probabilities = predict_gesture(model, your_data, label_encoder)")
+    print()
 
 
 if __name__ == "__main__":

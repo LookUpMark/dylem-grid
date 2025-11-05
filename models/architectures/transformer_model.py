@@ -6,7 +6,7 @@ Simple and efficient architecture using multi-head self-attention
 import torch
 from torch import nn
 import math
-from .training_utils import train_model, evaluate_model
+from utils.training_utils import train_model, evaluate_model
 
 
 class PositionalEncoding(nn.Module):

@@ -20,6 +20,11 @@ Update these values after running hyperparameter optimization!
 Note: Update the hyperparameters below with your optimization results
 """
 
+import sys
+import os
+# Add project root to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import random
 import numpy as np
 import pandas as pd
@@ -27,6 +32,14 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
+
+# Import wandb for experiment tracking
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
+    print("Warning: wandb not installed. Install with: pip install wandb")
 
 from utils.data_processing import data_loader, data_preprocess, apply_pca, prepare_data
 
@@ -39,11 +52,48 @@ from utils.plots import (
     plot_pca_boxplot,
 )
 
+from utils.display import (
+    print_header,
+    print_section,
+    print_subsection,
+    print_success,
+    print_info,
+    print_metric,
+    print_model_summary
+)
+
 
 def main():
     # Header
-    print("Gesture recognition — Transformer + Attention")
-    print("\n" * 3)
+    print_header("Transformer + Attention — Gesture Recognition")
+
+    # Initialize Weights & Biases
+    if WANDB_AVAILABLE:
+        wandb.init(
+            project="dylem-grid-gestures",
+            name="transformer-training",
+            config={
+                "architecture": "Encoder-only Transformer",
+                "dataset": "DYLEM-GRID",
+                "d_model": 64,
+                "nhead": 4,
+                "num_layers": 1,
+                "dim_feedforward": 64,
+                "dropout": 0.4938307576650347,
+                "learning_rate": 0.001081641230706332,
+                "weight_decay": 1.0301684581532967e-05,
+                "optimizer": "Adam",
+                "batch_size": 32,
+                "random_state": 44,
+                "pca_variance": 0.95,
+                "epochs": 50,
+                "patience": 15
+            },
+            tags=["transformer", "attention", "gesture-recognition"]
+        )
+        print_success("Weights & Biases initialized")
+    else:
+        print_info("Training without W&B tracking (wandb not installed)")
 
     # Set random seeds for reproducibility
     random.seed(42)
@@ -51,70 +101,49 @@ def main():
     torch.manual_seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(42)
-    print("Random seeds set (seed=42)")
-    print("\n" * 3)
+    print_success("Random seeds initialized (seed=42)")
 
     # Load data
-    print("LOADING DATA")
-    print("\n" * 2)
-    data, labels = data_loader("../../data/DYLEM-GRID", "Raw")
-    print(f"Loaded {len(data):,} samples")
+    print_section("Data Loading")
+    data, labels = data_loader("data/DYLEM-GRID", "Raw")
+    print_success(f"Loaded {len(data):,} samples")
 
     # Show label distribution
-    label_dist = pd.Series(labels).value_counts().to_dict()
-    print("Label distribution:")
+    print_subsection("Label Distribution")
+    label_dist = pd.Series(labels).value_counts().sort_index().to_dict()
     for label, count in label_dist.items():
-        print(f"  {label:<18} {count:>4} ({count / len(labels) * 100:>4.1f}%)")
-    print("\n" * 3)
+        percentage = count / len(labels) * 100
+        print_info(f"{label:<18} {count:>4} samples ({percentage:>5.1f}%)")
 
     # Preprocess data
-    print("PREPROCESSING DATA")
-    print("\n" * 2)
-    print("Preprocessing...")
+    print_section("Data Preprocessing")
     data, labels = data_preprocess(data, labels)
-    print(f"Sample shape after preprocessing: {data[0].shape}")
-    print("\n" * 3)
+    print_success(f"Preprocessing complete → shape: {data[0].shape}")
 
     # Apply PCA
-    print("DIMENSIONALITY REDUCTION (PCA)")
-    print("\n" * 2)
-    print("Applying PCA (95% variance)...")
+    print_subsection("Dimensionality Reduction (PCA)")
     data, labels = apply_pca(data, labels, variance_threshold=0.95)
-    print(f"Sample shape after PCA: {data[0].shape}")
-
-    # Generate PCA boxplot visualization
-    print("Creating PCA boxplot visualization...")
-    plot_pca_boxplot(data, labels, filename="../../plots/transformer_pca_boxplot.png")
-    print("\n" * 3)
+    print_success(f"PCA applied (95% variance) → shape: {data[0].shape}")
+    
+    plot_pca_boxplot(data, labels, filename="plots/transformer_pca_boxplot.png")
+    print_info("PCA boxplot saved to plots/transformer_pca_boxplot.png")
 
     # Prepare data for PyTorch
-    print("DATA PREPARATION")
-    print("\n" * 2)
+    print_section("Data Preparation")
     X, y, label_encoder = prepare_data(data, labels)
-    print(f"Final data shape: {X.shape}")
-    print(f"Final labels shape: {y.shape}")
-
-    # Show classes
-    print(
-        f"Detected classes: {len(label_encoder.classes_)} -> {', '.join(label_encoder.classes_)}"
-    )
+    print_success(f"Data tensors created → X: {X.shape}, y: {y.shape}")
+    print_info(f"Classes ({len(label_encoder.classes_)}): {', '.join(label_encoder.classes_)}")
 
     # Split data (using same random_state as optimization for reproducibility)
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=44, stratify=y
     )
-    print(f"Train/Validation split:")
-    print(
-        f"  Training set:   {X_train.shape[0]:>4} samples ({X_train.shape[0] / X.shape[0] * 100:>5.1f}%)"
-    )
-    print(
-        f"  Validation set: {X_val.shape[0]:>4} samples ({X_val.shape[0] / X.shape[0] * 100:>5.1f}%)"
-    )
-    print("\n" * 3)
+    print_subsection("Train/Validation Split")
+    print_info(f"Training:   {X_train.shape[0]:>4} samples ({X_train.shape[0] / X.shape[0] * 100:>5.1f}%)")
+    print_info(f"Validation: {X_val.shape[0]:>4} samples ({X_val.shape[0] / X.shape[0] * 100:>5.1f}%)")
 
     # Create data loaders
-    print("MODEL SETUP")
-    print("\n" * 2)
+    print_section("Model Setup")
     train_dataset = TensorDataset(X_train, y_train)
     val_dataset = TensorDataset(X_val, y_val)
 
@@ -125,7 +154,7 @@ def main():
 
     # Initialize model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print_info(f"Device: {device}")
 
     input_size = X.shape[2]  # Number of features
     d_model = 64  # Optimal from Optuna
@@ -135,7 +164,6 @@ def main():
     num_classes = len(label_encoder.classes_)
     dropout = 0.4938307576650347  # Optimal from Optuna
 
-    print("Initializing model...")
     model = GestureTransformer(
         input_size,
         d_model,
@@ -146,17 +174,24 @@ def main():
         dropout=dropout,
     )
     model.to(device)
-
-    print(
-        f"Model: input={input_size}, d_model={d_model}, heads={nhead}, layers={num_layers},"
-    )
-    print(f"       ff={dim_feedforward}, classes={num_classes}, dropout={dropout:.4f}")
-    print(f"Total params: {sum(p.numel() for p in model.parameters()):,}")
-    print("\n" * 3)
+    
+    # Watch model with wandb
+    if WANDB_AVAILABLE:
+        wandb.watch(model, log="all", log_freq=10)
+    
+    model_config = {
+        'input_size': input_size,
+        'd_model': d_model,
+        'nhead': nhead,
+        'num_layers': num_layers,
+        'dim_feedforward': dim_feedforward,
+        'num_classes': num_classes,
+        'dropout': dropout
+    }
+    print_model_summary("Transformer", sum(p.numel() for p in model.parameters()), model_config)
 
     # Training
-    print("TRAINING PHASE")
-    print("\n" * 2)
+    print_section("Training Phase")
 
     # Optimizer parameters optimized with Optuna (update after optimization)
     learning_rate = 0.001081641230706332  # Optimal from Optuna
@@ -183,9 +218,10 @@ def main():
             model.parameters(), lr=learning_rate, weight_decay=weight_decay
         )
 
-    print(
-        f"Training: CrossEntropyLoss, {optimizer_name}(lr={learning_rate:.6f}, weight_decay={weight_decay:.2e}), early stopping=15"
-    )
+    print_subsection("Training Configuration")
+    print_info(f"Loss: CrossEntropyLoss")
+    print_info(f"Optimizer: {optimizer_name} (lr={learning_rate:.6f}, weight_decay={weight_decay:.2e})")
+    print_info(f"Epochs: 50 (early stopping patience=15)")
 
     (
         model,
@@ -207,44 +243,60 @@ def main():
         patience=15,
     )
 
-    print("\n" * 3)
-    print("FINAL EVALUATION")
-    print("\n" * 2)
-    print("Best model results:")
+    # Log training curves to wandb
+    if WANDB_AVAILABLE:
+        for epoch in range(len(train_losses)):
+            wandb.log({
+                "epoch": epoch + 1,
+                "train/loss": train_losses[epoch],
+                "train/accuracy": train_accs[epoch],
+                "val/loss": val_losses[epoch],
+                "val/accuracy": val_accs[epoch]
+            })
 
+    print_section("Final Evaluation")
     val_acc = best_stats["val_acc"]
     val_preds = best_val_preds
     val_targets = best_val_targets
 
-    print("BEST MODEL PERFORMANCE:")
-    print(
-        f"  epoch={best_stats['epoch']}  val_loss={best_stats['val_loss']:.6f}  val_acc={val_acc:.4f}  correct={int(val_acc * len(val_targets))}/{len(val_targets)}"
-    )
-    print("\n" * 3)
+    print_subsection("Best Model Performance")
+    print_metric("Epoch", best_stats['epoch'])
+    print_metric("Validation Loss", f"{best_stats['val_loss']:.6f}")
+    print_metric("Validation Accuracy", f"{val_acc:.4f} ({val_acc*100:.2f}%)", good_threshold=0.95)
+    print_info(f"Correct predictions: {int(val_acc * len(val_targets))}/{len(val_targets)}")
 
-    print("GENERATING VISUALIZATIONS")
-    print("\n" * 2)
-    print("Creating enhanced training history plot...")
+    # Log final metrics to wandb
+    if WANDB_AVAILABLE:
+        wandb.log({
+            "best/epoch": best_stats['epoch'],
+            "best/val_loss": best_stats['val_loss'],
+            "best/val_accuracy": val_acc,
+            "best/correct_predictions": int(val_acc * len(val_targets)),
+            "best/total_samples": len(val_targets)
+        })
+
+    print_section("Generating Visualizations")
+    
     plot_training_history(
         train_losses,
         val_losses,
         train_accs,
         val_accs,
         best_stats,
-        filename="../../plots/transformer_training_history.png",
+        filename="plots/transformer_training_history.png",
     )
+    print_success("Training history plot saved")
 
-    print("Generating detailed confusion matrix...")
     plot_confusion_matrix(
         val_targets,
         val_preds,
         label_encoder.classes_,
         val_acc,
         best_stats["epoch"],
-        filename="../../plots/transformer_confusion_matrix.png",
+        filename="plots/transformer_confusion_matrix.png",
     )
+    print_success("Confusion matrix saved")
 
-    print("Building comprehensive metrics dashboard...")
     plot_comprehensive_metrics(
         val_targets,
         val_preds,
@@ -256,13 +308,12 @@ def main():
         train_accs,
         val_accs,
         best_stats,
-        filename="../../plots/transformer_comprehensive_metrics.png",
+        filename="plots/transformer_comprehensive_metrics.png",
     )
-    print("\n" * 3)
+    print_success("Comprehensive metrics dashboard saved")
 
     # Save model
-    print("SAVING MODEL")
-    print("\n" * 2)
+    print_section("Saving Model")
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -278,25 +329,41 @@ def main():
             "best_val_preds": best_val_preds,
             "best_val_targets": best_val_targets,
         },
-        "../../models/checkpoints/gesture_transformer_model.pth",
+        "models/checkpoints/gesture_transformer_model.pth",
     )
-    print("Model saved as 'gesture_transformer_model.pth'")
-    print("Saved components: model weights, label encoder, configuration")
-    print("\n" * 3)
+    print_success("Model checkpoint saved to models/checkpoints/gesture_transformer_model.pth")
+    print_info("Saved: model weights, label encoder, configuration, best stats")
+
+    # Log visualizations to W&B
+    if WANDB_AVAILABLE:
+        wandb.log({
+            "plots/pca_boxplot": wandb.Image("plots/transformer_pca_boxplot.png"),
+            "plots/training_history": wandb.Image("plots/transformer_training_history.png"),
+            "plots/confusion_matrix": wandb.Image("plots/transformer_confusion_matrix.png"),
+            "plots/comprehensive_metrics": wandb.Image("plots/transformer_comprehensive_metrics.png"),
+        })
+        
+        # Log model artifact
+        artifact = wandb.Artifact('transformer-gesture-model', type='model')
+        artifact.add_file('models/checkpoints/gesture_transformer_model.pth')
+        wandb.log_artifact(artifact)
+        
+        wandb.finish()
+        print_info("Results logged to Weights & Biases")
 
     # Final success message
-    print("=" * 80)
-    print("TRAINING COMPLETED SUCCESSFULLY!")
-    print("=" * 80)
-    print(f"Final Accuracy: {val_acc:.4f} ({val_acc * 100:.2f}%)")
-    print(f"Best Epoch: {best_stats['epoch']}")
-    print(
-        f"Output plots: plots_output/transformer_pca_boxplot.png, plots_output/transformer_training_history.png,"
-    )
-    print(
-        f"              plots_output/transformer_confusion_matrix.png, plots_output/transformer_comprehensive_metrics.png"
-    )
-    print(f"Model checkpoint: gesture_transformer_model.pth")
+    print_header("TRAINING COMPLETED SUCCESSFULLY!", '=')
+    print_metric("Final Accuracy", f"{val_acc:.4f} ({val_acc * 100:.2f}%)")
+    print_metric("Best Epoch", best_stats['epoch'])
+    print_subsection("Generated Files")
+    print_info("Plots:")
+    print_info("  • plots/transformer_pca_boxplot.png", indent=1)
+    print_info("  • plots/transformer_training_history.png", indent=1)
+    print_info("  • plots/transformer_confusion_matrix.png", indent=1)
+    print_info("  • plots/transformer_comprehensive_metrics.png", indent=1)
+    print_info("Model:")
+    print_info("  • models/checkpoints/gesture_transformer_model.pth", indent=1)
+    print()
 
 
 if __name__ == "__main__":

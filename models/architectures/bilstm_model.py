@@ -5,7 +5,7 @@ Contains GestureRNN model and imports shared training utilities
 
 import torch
 from torch import nn
-from .training_utils import train_model, evaluate_model
+from utils.training_utils import train_model, evaluate_model
 
 
 class GestureRNN(nn.Module):

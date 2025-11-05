@@ -6,6 +6,9 @@ seaborn
 scikit-learn
 tqdm
 
+# Experiment Tracking (Recommended)
+wandb
+
 # Hyperparameter Optimization (Recommended: Optuna)
 optuna
 optuna-dashboard

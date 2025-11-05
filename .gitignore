@@ -62,6 +62,11 @@ wandb/
 optuna_results.json
 transformer_optuna_results.json
 
+# Optuna artifacts and local results (do not commit)
+results/
+optuna_study.pkl
+transformer_optuna_study.pkl
+
 # Logs
 *.log
 

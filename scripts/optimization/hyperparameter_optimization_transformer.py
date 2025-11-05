@@ -5,6 +5,11 @@ Modern Bayesian optimization with automatic pruning
 Install: pip install optuna optuna-dashboard
 """
 
+import sys
+import os
+# Add project root to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import random
 import numpy as np
 import torch
@@ -19,8 +24,25 @@ from optuna.visualization import (
     plot_slice,
 )
 
+# Try to import wandb
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
+
 from utils.data_processing import data_loader, data_preprocess, apply_pca, prepare_data
 from models.architectures.transformer_model import GestureTransformer, evaluate_model
+from utils.display import (
+    print_header,
+    print_section,
+    print_subsection,
+    print_success,
+    print_info,
+    print_metric,
+    print_warning,
+    print_separator
+)
 
 
 def set_seed(seed=44):
@@ -127,6 +149,21 @@ def objective(trial, X, y, device):
         # Validation phase
         val_loss, val_acc, _, _ = evaluate_model(model, val_loader, criterion, device)
 
+        # Log to W&B if available
+        if WANDB_AVAILABLE:
+            wandb.log({
+                'trial': trial.number,
+                'epoch': epoch,
+                'val_loss': val_loss,
+                'val_accuracy': val_acc,
+                'learning_rate': learning_rate,
+                'd_model': d_model,
+                'nhead': nhead,
+                'num_layers': num_layers,
+                'dropout': dropout,
+                'batch_size': batch_size,
+            })
+
         # Report intermediate value for pruning
         trial.report(val_acc, epoch)
 
@@ -151,47 +188,55 @@ def objective(trial, X, y, device):
 def main():
     """Main function for hyperparameter optimization with Optuna"""
 
-    print("Hyperparameter Optimization with Optuna (Bayesian Optimization)")
-    print("\n" * 3)
+    print_header("Transformer Hyperparameter Optimization — Optuna")
+
+    # Initialize W&B for optimization tracking
+    if WANDB_AVAILABLE:
+        wandb.init(
+            project="dylem-grid-gestures",
+            name="transformer-optuna-optimization",
+            config={
+                "optimization_method": "optuna-tpe",
+                "n_trials": 100,
+                "pruner": "median",
+                "objective": "maximize_val_accuracy"
+            },
+            tags=["optimization", "transformer", "optuna"]
+        )
+        print_info("Weights & Biases initialized")
 
     # Set random seed
     set_seed(44)
-    print("Random seeds set (seed=44)")
-    print("\n" * 3)
+    print_success("Random seeds initialized (seed=44)")
 
     # Setup device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    print("\n" * 3)
+    print_info(f"Device: {device}")
 
     # Load and preprocess data
-    print("LOADING AND PREPROCESSING DATA")
-    print("\n" * 2)
+    print_section("Data Loading & Preprocessing")
 
-    data, labels = data_loader("DYLEM-GRID", "Raw")
-    print(f"Loaded {len(data)} samples")
+    data, labels = data_loader("data/DYLEM-GRID", "Raw")
+    print_success(f"Loaded {len(data)} samples")
 
     data, labels = data_preprocess(data, labels)
-    print("Data preprocessed")
+    print_success("Data preprocessed")
 
     data, labels = apply_pca(data, labels, variance_threshold=0.95)
-    print(f"PCA applied, shape: {data[0].shape}")
+    print_success(f"PCA applied → shape: {data[0].shape}")
 
     X, y, label_encoder = prepare_data(data, labels)
-    print(f"Final data shape: {X.shape}")
-    print(f"Classes: {list(label_encoder.classes_)}")
-    print("\n" * 3)
+    print_success(f"Data prepared → X: {X.shape}, y: {y.shape}")
+    print_info(f"Classes ({len(label_encoder.classes_)}): {', '.join(list(label_encoder.classes_))}")
 
     # Create Optuna study
-    print("RUNNING OPTUNA OPTIMIZATION")
-    print("\n" * 2)
+    print_section("Optuna Configuration")
 
-    print("Configuration:")
-    print("  Algorithm: TPE (Tree-structured Parzen Estimator)")
-    print("  Pruner: Median Pruner (stops unpromising trials early)")
-    print("  Trials: 100 (configurable)")
-    print("  Direction: Maximize validation accuracy")
-    print("\n" * 3)
+    print_subsection("Optimization Settings")
+    print_info("Algorithm: TPE (Tree-structured Parzen Estimator)")
+    print_info("Pruner: Median Pruner (early stopping for unpromising trials)")
+    print_info("Trials: 100")
+    print_info("Objective: Maximize validation accuracy")
 
     # Create study with pruning
     study = optuna.create_study(
@@ -202,6 +247,10 @@ def main():
         study_name="transformer_optimization",
     )
 
+    print_section("Running Optimization")
+    print_info("Starting Bayesian optimization with Optuna...")
+    print_separator()
+
     # Optimize
     study.optimize(
         lambda trial: objective(trial, X, y, device),
@@ -210,13 +259,15 @@ def main():
         show_progress_bar=True,
     )
 
+    print_separator()
+
     # Find best trial considering accuracy first, then parameter count
     completed_trials = [
         t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE
     ]
 
     if not completed_trials:
-        print("No completed trials found!")
+        print_warning("No completed trials found!")
         return
 
     # Sort by accuracy (descending), then by parameter count (ascending)
@@ -232,49 +283,42 @@ def main():
     )
 
     # Print results
-    print("\n" * 3)
-    print("OPTIMIZATION RESULTS")
-    print("\n" * 2)
+    print_section("Optimization Results")
 
-    print("BEST TRIAL:")
-    print(f"  Trial number: {best_trial.number}")
-    print(f"  Best validation accuracy: {best_trial.value:.4f}")
-    print(f"  Number of parameters: {best_trial.user_attrs.get('num_params', 'N/A'):,}")
+    print_subsection("Best Trial")
+    print_metric("Trial number", best_trial.number)
+    print_metric("Validation accuracy", f"{best_trial.value:.4f} ({best_trial.value*100:.2f}%)")
+    print_metric("Model parameters", f"{best_trial.user_attrs.get('num_params', 'N/A'):,}")
 
     if len(best_trials_at_max_acc) > 1:
-        print("\n" * 2)
-        print(f"Note: {len(best_trials_at_max_acc)} trials achieved the same accuracy.")
-        print(
-            f"Selected trial {best_trial.number} with fewest parameters ({best_trial.user_attrs.get('num_params', 'N/A'):,})."
-        )
+        print()
+        print_info(f"Note: {len(best_trials_at_max_acc)} trials achieved the same accuracy.")
+        print_info(f"Selected trial {best_trial.number} with fewest parameters.")
 
-    print("\n" * 3)
-    print("BEST HYPERPARAMETERS:")
+    print_subsection("Best Hyperparameters")
     for key, value in best_trial.params.items():
-        print(f"  {key}: {value}")
+        print_info(f"{key}: {value}")
 
-    print("\n" * 3)
-    print("Statistics:")
-    print(f"  Total trials: {len(study.trials)}")
-    print(f"  Completed trials: {len(completed_trials)}")
-    print(
-        f"  Pruned trials: {len([t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED])}"
-    )
+    print_subsection("Statistics")
+    print_info(f"Total trials: {len(study.trials)}")
+    print_info(f"Completed: {len(completed_trials)}")
+    print_info(f"Pruned: {len([t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED])}")
 
     # Save results
-    print("\n" * 3)
-    print("SAVING RESULTS")
-    print("\n" * 2)
+    print_section("Saving Results")
 
-    # Save study to database (can be loaded later)
+    # Save study to a results directory (not in repo root)
     import joblib
-
-    joblib.dump(study, "transformer_optuna_study.pkl")
-    print("Study saved to 'transformer_optuna_study.pkl'")
-
-    # Save best parameters to JSON
     import json
     from datetime import datetime
+    import os
+
+    results_dir = os.path.join('results', 'optuna', 'transformer')
+    os.makedirs(results_dir, exist_ok=True)
+
+    study_path = os.path.join(results_dir, 'transformer_optuna_study.pkl')
+    joblib.dump(study, study_path)
+    print_success(f"Study saved to {study_path}")
 
     results = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -298,9 +342,10 @@ def main():
         ],
     }
 
-    with open("transformer_optuna_results.json", "w") as f:
+    json_path = os.path.join(results_dir, 'transformer_optuna_results.json')
+    with open(json_path, "w") as f:
         json.dump(results, f, indent=2)
-    print("Results saved to 'transformer_optuna_results.json'")
+    print_success(f"Results saved to {json_path}")
 
     # Generate visualizations
     try:
@@ -309,63 +354,68 @@ def main():
         matplotlib.use("Agg")  # Use non-interactive backend
         import matplotlib.pyplot as plt
 
-        print()
-        print("GENERATING VISUALIZATIONS")
-        print()
-
-        # Create output directory
-        import os
-
-        os.makedirs("plots_output", exist_ok=True)
+        print_section("Generating Visualizations")
 
         # 1. Optimization history
         fig = plot_optimization_history(study)
-        fig.write_image("plots_output/transformer_optimization_history.png")
-        print("Optimization history saved")
+        fig.write_image(os.path.join(results_dir, 'transformer_optimization_history.png'))
+        print_success(f"Optimization history saved to {results_dir}")
 
         # 2. Parameter importances
         fig = plot_param_importances(study)
-        fig.write_image("plots_output/transformer_param_importances.png")
-        print("Parameter importances saved")
+        fig.write_image(os.path.join(results_dir, 'transformer_param_importances.png'))
+        print_success(f"Parameter importances saved to {results_dir}")
 
         # 3. Parallel coordinate plot
         fig = plot_parallel_coordinate(study)
-        fig.write_image("plots_output/transformer_parallel_coordinate.png")
-        print("Parallel coordinate plot saved")
+        fig.write_image(os.path.join(results_dir, 'transformer_parallel_coordinate.png'))
+        print_success(f"Parallel coordinate plot saved to {results_dir}")
 
         # 4. Slice plot
         fig = plot_slice(study)
-        fig.write_image("plots_output/transformer_slice.png")
-        print("Slice plot saved")
+        fig.write_image(os.path.join(results_dir, 'transformer_slice.png'))
+        print_success(f"Slice plot saved to {results_dir}")
 
-        print()
-        print("All visualizations saved in 'plots_output/' directory")
+        print_info(f"All visualizations saved in {results_dir}")
+
+        # Log visualizations to W&B
+        if WANDB_AVAILABLE:
+            wandb.log({
+                "optimization/history": wandb.Image(os.path.join(results_dir, 'transformer_optimization_history.png')),
+                "optimization/param_importances": wandb.Image(os.path.join(results_dir, 'transformer_param_importances.png')),
+                "optimization/parallel_coordinate": wandb.Image(os.path.join(results_dir, 'transformer_parallel_coordinate.png')),
+                "optimization/slice": wandb.Image(os.path.join(results_dir, 'transformer_slice.png')),
+            })
 
     except (ImportError, Exception) as e:
-        print()
-        print("Visualization generation skipped")
-        print(f"Reason: {type(e).__name__}")
-        print(
-            "Results are saved in 'transformer_optuna_results.json' and 'transformer_optuna_study.pkl'"
-        )
-        print(
-            "You can view results using: optuna-dashboard transformer_optuna_study.pkl"
-        )
+        print_section("Visualization Generation")
+        print_warning("Visualization generation skipped")
+        print_info(f"Reason: {type(e).__name__}")
+    
+    # Log best parameters to W&B
+    if WANDB_AVAILABLE:
+        wandb.log({
+            "best/trial_number": best_trial.number,
+            "best/val_accuracy": best_trial.value,
+            "best/num_params": best_trial.user_attrs.get('num_params', 0),
+        })
+        wandb.config.update({"best_params": best_trial.params})
+        wandb.finish()
+        print_info("Results logged to Weights & Biases")
+    
+    print_info(f"Results saved in {json_path} and {study_path}")
+    print_info(f"View results: optuna-dashboard {study_path}")
 
     # Final summary
-    print("\n" * 3)
-    print("=" * 80)
-    print("OPTIMIZATION COMPLETED!")
-    print("=" * 80)
-    print("\n" * 2)
-    print("Next Steps:")
-    print("  1. Update train_transformer.py with best hyperparameters")
-    print("  2. Train final model on full training set")
-    print("  3. Evaluate on test set")
-    print("\n" * 2)
-    print("Advanced:")
-    print("  View interactive dashboard: optuna-dashboard transformer_optuna_study.pkl")
-    print("  Load study: study = joblib.load('transformer_optuna_study.pkl')")
+    print_header("OPTIMIZATION COMPLETED!", '=')
+    print_subsection("Next Steps")
+    print_info("1. Update train_transformer.py with best hyperparameters")
+    print_info("2. Train final model on full training set")
+    print_info("3. Evaluate on test set")
+    print()
+    print_subsection("Advanced Options")
+    print_info(f"View interactive dashboard: optuna-dashboard {study_path}")
+    print_info(f"Load study: study = joblib.load('{study_path}')")
     print()
 
 

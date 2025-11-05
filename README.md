@@ -78,35 +78,65 @@ dylem-grid/
 │       ├── hyperparameter_optimization_bilstm.py # BiLSTM HPO with Optuna
 │       └── hyperparameter_optimization_transformer.py # Transformer HPO
 │
+│
 ├── 📂 plots/                                     # Generated visualizations
 │   ├── *_training_history.png                    # Training curves
 │   ├── *_confusion_matrix.png                    # Confusion matrices
 │   ├── *_comprehensive_metrics.png               # Performance dashboards
 │   └── *_pca_boxplot.png                         # PCA analysis
 │
+├── 📂 wandb/                                     # Weights & Biases logs (not tracked)
+│   └── run-*/                                    # W&B experiment runs
+│
+├── 📂 results/                                   # Optimization results (not tracked)
+│   └── optuna/
+│       ├── bilstm/                               # BiLSTM optimization artifacts
+│       │   ├── optuna_study.pkl                  # Optuna study object
+│       │   ├── optuna_results.json               # Best hyperparameters & stats
+│       │   └── *.png                             # Optimization visualizations
+│       └── transformer/                          # Transformer optimization artifacts
+│           ├── transformer_optuna_study.pkl      # Optuna study object
+│           ├── transformer_optuna_results.json   # Best hyperparameters & stats
+│           └── *.png                             # Optimization visualizations
+│
+└── 📄 Configuration Files
+    ├── requirements.txt                          # Python dependencies
+    ├── .gitignore                                # Git ignore rules
+    ├── LICENSE                                   # MIT License
+    └── README.md                                 # This file
+```
+│
 ├── 📂 checkpoints/                               # W&B run checkpoints
 │   └── wandb/                                    # Weights & Biases logs
 │
-├── 📄 Configuration Files
-│   ├── requirements.txt                          # Python dependencies
-│   ├── .gitignore                                # Git ignore rules
-│   ├── LICENSE                                   # MIT License
-│   └── README.md                                 # This file
+├── � results/                                   # Optimization results (not tracked)
+│   └── optuna/
+│       ├── bilstm/                               # BiLSTM optimization artifacts
+│       │   ├── optuna_study.pkl                  # Optuna study object
+│       │   ├── optuna_results.json               # Best hyperparameters & stats
+│       │   └── *.png                             # Optimization visualizations
+│       └── transformer/                          # Transformer optimization artifacts
+│           ├── transformer_optuna_study.pkl      # Optuna study object
+│           ├── transformer_optuna_results.json   # Best hyperparameters & stats
+│           └── *.png                             # Optimization visualizations
 │
-└── 📄 Results
-    ├── optuna_results.json                       # BiLSTM optimization results
-    └── transformer_optuna_results.json           # Transformer optimization results
+└── 📄 Configuration Files
+    ├── requirements.txt                          # Python dependencies
+    ├── .gitignore                                # Git ignore rules
+    ├── LICENSE                                   # MIT License
+    └── README.md                                 # This file
 ```
 
-## Key Features
+## ✨ Key Features
 
 - **Two Model Architectures:** Choose between BiLSTM+Attention or Transformer based on your needs
-- **Data Preprocessing Pipeline:** Includes handling of missing values, duplicate and low-variance feature removal, outlier detection, and normalization.
-- **Dimensionality Reduction:** Principal Component Analysis (PCA) is used to reduce the dimensionality of the data while retaining 95% of the variance.
-- **PCA Visualization:** Generates boxplots showing the distribution of principal components and class separation after dimensionality reduction.
+- **Experiment Tracking:** Integrated Weights & Biases for real-time monitoring, model versioning, and experiment comparison
+- **Data Preprocessing Pipeline:** Includes handling of missing values, duplicate and low-variance feature removal, outlier detection, and normalization
+- **Dimensionality Reduction:** Principal Component Analysis (PCA) is used to reduce the dimensionality of the data while retaining 95% of the variance
+- **PCA Visualization:** Generates boxplots showing the distribution of principal components and class separation after dimensionality reduction
 - **Robust Training:** Advanced training techniques with Early Stopping, hyperparameter optimization with Optuna
-- **Comprehensive Evaluation:** Generates detailed classification reports and visualizations, including training history and confusion matrix.
-- **Inference Ready:** Provides a simple interface to load trained models and make predictions on new data.
+- **Comprehensive Evaluation:** Generates detailed classification reports and visualizations, including training history and confusion matrix
+- **Inference Ready:** Provides a simple interface to load trained models and make predictions on new data
 
 ## Dataset
 
@@ -321,19 +351,98 @@ cd dylem-grid
 pip install -r requirements.txt
 ```
 
-### 🚀 Quick Start
+### Experiment Tracking with Weights & Biases
+
+This project integrates [Weights & Biases](https://wandb.ai/) for comprehensive experiment tracking and visualization. W&B provides:
+
+- **Real-time Metrics**: Track training/validation loss and accuracy in real-time
+- **Model Versioning**: Automatically save and version trained models
+- **Visualization Dashboard**: Interactive plots and comprehensive metrics
+- **Hyperparameter Tracking**: Log all configuration parameters for reproducibility
+- **Comparison Tools**: Compare multiple training runs side-by-side
+
+**Setup:**
+
+1. Create a free account at [wandb.ai](https://wandb.ai/)
+2. Install wandb (already included in requirements.txt):
+   ```bash
+   pip install wandb
+   ```
+3. Login to W&B:
+   ```bash
+   wandb login
+   ```
+4. Run any training or optimization script - W&B will automatically track your experiments
+
+**What Gets Logged:**
+
+- **Training Scripts** (`train_bilstm.py`, `train_transformer.py`):
+  - Training/validation loss and accuracy per epoch
+  - Model configuration and hyperparameters
+  - Training visualizations (confusion matrix, comprehensive metrics, PCA analysis)
+  - Model checkpoints as artifacts
+  - Best model statistics
+
+- **Optimization Scripts** (`hyperparameter_optimization_*.py`):
+  - Optuna trial results (loss/accuracy per trial)
+  - Best hyperparameters and trial number
+  - Optimization visualizations (history, parameter importance, parallel coordinates)
+  - Model parameter counts
+
+**Viewing Results:**
+
+Visit your W&B dashboard at `https://wandb.ai/<your-username>/dylem-grid-gestures` to view all logged experiments.
+
+**Optional Usage:**
+
+W&B is optional and gracefully degrades if not installed. The scripts will run normally without W&B, simply without experiment tracking.
+
+### Hyperparameter Optimization
+
+Both models come with pre-optimized hyperparameters, but you can re-run optimization using Optuna:
 
 ```bash
-# 1. Optimize hyperparameters (optional, but recommended)
+# Optimize BiLSTM
 python scripts/optimization/hyperparameter_optimization_bilstm.py
+
+# Optimize Transformer
 python scripts/optimization/hyperparameter_optimization_transformer.py
+```
 
-# 2. Train models
+**Optimization Features:**
+- **Bayesian Optimization**: Intelligent hyperparameter search using TPE (Tree-structured Parzen Estimator)
+- **Early Pruning**: Automatically stops unpromising trials to save time
+- **Comprehensive Results**: Saves study objects, JSON summaries, and visualizations to `results/optuna/`
+- **Interactive Dashboard**: View results with `optuna-dashboard results/optuna/bilstm/optuna_study.pkl`
+
+**Output Location:**
+- BiLSTM results: `results/optuna/bilstm/`
+- Transformer results: `results/optuna/transformer/`
+- Files include: study objects (`.pkl`), JSON results, optimization plots
+
+**Note:** The `results/` directory is ignored by Git and won't be committed to the repository.
+
+### Training
+
+Train models with optimized hyperparameters:
+
+```bash
+# Train BiLSTM
 python scripts/train/train_bilstm.py
-python scripts/train/train_transformer.py
 
-# 3. Test inference
+# Train Transformer
+python scripts/train/train_transformer.py
+```
+
+### Inference & Prediction
+
+Test trained models and make predictions:
+
+```bash
+# BiLSTM inference
 python scripts/inference/inference_bilstm.py
+
+# Transformer inference
 python scripts/inference/inference_transformer.py
 ```
 
