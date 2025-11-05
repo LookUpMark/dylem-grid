@@ -41,36 +41,61 @@ The goal of this project is to accurately classify dynamic gestures based on tim
 
 ```
 dylem-grid/
-├── 📂 Core Scripts
-│   ├── train_bilstm.py, train_transformer.py     # Training scripts
-│   ├── inference_bilstm.py, inference_transformer.py  # Inference scripts
-│   ├── compare_models.py                         # Model comparison utility
-│   └── hyperparameter_optimization_*.py         # Hyperparameter optimization
-│
-├── � Kaggle Notebooks
+├── � Notebooks (Root)
 │   ├── kaggle_bilstm_example.ipynb               # BiLSTM tutorial notebook
 │   └── kaggle_transformer_example.ipynb          # Transformer tutorial notebook
 │
-├── �📂 Trained Models
-│   ├── gesture_rnn_model.pth                     # BiLSTM model
-│   ├── gesture_transformer_model.pth             # Transformer model
-│   └── best_model_checkpoint.pth                 # Best checkpoint
+├── 📂 models/
+│   ├── architectures/                            # Model definitions
+│   │   ├── bilstm_model.py                       # BiLSTM + Attention architecture
+│   │   ├── transformer_model.py                  # Transformer architecture
+│   │   └── __init__.py
+│   └── checkpoints/                              # Saved model weights
+│       ├── gesture_rnn_model.pth                 # Trained BiLSTM model
+│       ├── gesture_transformer_model.pth         # Trained Transformer model
+│       └── .gitkeep
 │
-├── 📂 Source Code (src/)
-│   ├── bilstm_model.py, transformer_model.py     # Model architectures
-│   ├── data_processing.py                        # Data preprocessing
-│   ├── plots.py                                  # Visualizations
-│   └── training_utils.py                         # Shared utilities
+├── 📂 data/
+│   └── DYLEM-GRID/                               # Dataset location
+│       ├── DYLEM-GRID_Raw/                       # Raw gesture data
+│       ├── DYLEM-GRID_Cleaned/                   # Preprocessed data
+│       └── DYLEM-GRID_Statistic/                 # Feature-engineered data
 │
-├── 📂 Results (plots_output/)
+├── 📂 utils/
+│   ├── data_processing.py                        # Data loading & preprocessing
+│   ├── plots.py                                  # Visualization utilities
+│   ├── training_utils.py                         # Shared training functions
+│   └── __init__.py
+│
+├── 📂 scripts/
+│   ├── train/
+│   │   ├── train_bilstm.py                       # BiLSTM training script
+│   │   └── train_transformer.py                  # Transformer training script
+│   ├── inference/
+│   │   ├── inference_bilstm.py                   # BiLSTM inference script
+│   │   └── inference_transformer.py              # Transformer inference script
+│   └── optimization/
+│       ├── hyperparameter_optimization_bilstm.py # BiLSTM HPO with Optuna
+│       └── hyperparameter_optimization_transformer.py # Transformer HPO
+│
+├── 📂 plots/                                     # Generated visualizations
 │   ├── *_training_history.png                    # Training curves
 │   ├── *_confusion_matrix.png                    # Confusion matrices
 │   ├── *_comprehensive_metrics.png               # Performance dashboards
 │   └── *_pca_boxplot.png                         # PCA analysis
 │
-└── 📂 Dataset (DYLEM-GRID/)
-    ├── DYLEM-GRID_Cleaned/                       # Preprocessed data
-    └── DYLEM-GRID_Raw/                           # Raw data
+├── 📂 checkpoints/                               # W&B run checkpoints
+│   └── wandb/                                    # Weights & Biases logs
+│
+├── 📄 Configuration Files
+│   ├── requirements.txt                          # Python dependencies
+│   ├── .gitignore                                # Git ignore rules
+│   ├── LICENSE                                   # MIT License
+│   └── README.md                                 # This file
+│
+└── 📄 Results
+    ├── optuna_results.json                       # BiLSTM optimization results
+    └── transformer_optuna_results.json           # Transformer optimization results
 ```
 
 ## Key Features
@@ -299,29 +324,28 @@ pip install -r requirements.txt
 ### 🚀 Quick Start
 
 ```bash
-# 1. Compare existing models
-python compare_models.py
+# 1. Optimize hyperparameters (optional, but recommended)
+python scripts/optimization/hyperparameter_optimization_bilstm.py
+python scripts/optimization/hyperparameter_optimization_transformer.py
 
-# 2. Optimize hyperparameters (optional)
-python hyperparameter_optimization_bilstm.py
-python hyperparameter_optimization_transformer.py
+# 2. Train models
+python scripts/train/train_bilstm.py
+python scripts/train/train_transformer.py
 
-# 3. Train models
-python train_bilstm.py
-python train_transformer.py
-
-# 4. Test inference
-python inference_bilstm.py
-python inference_transformer.py
+# 3. Test inference
+python scripts/inference/inference_bilstm.py
+python scripts/inference/inference_transformer.py
 ```
 
 ### 📊 Usage Example
 
 ```python
 # Load and use model
+import sys
+sys.path.append('scripts/inference')
 from inference_bilstm import load_model, predict_gesture
 
-model, label_encoder, config = load_model('gesture_rnn_model.pth')
+model, label_encoder, config = load_model('models/checkpoints/gesture_rnn_model.pth')
 predicted_labels, probabilities = predict_gesture(model, your_data, label_encoder)
 ```
 
@@ -402,7 +426,7 @@ Both notebooks follow a consistent, educational structure:
 
 ### 🎯 Key Benefits
 
-- **Self-Contained**: No external dependencies on `src/` modules
+- **Self-Contained**: No external dependencies on other modules
 - **Kaggle-Ready**: Direct compatibility with Kaggle environment
 - **Educational**: Detailed markdown explanations throughout
 - **Professional**: Publication-quality visualizations
@@ -417,40 +441,40 @@ Both notebooks follow a consistent, educational structure:
 3. Compare both approaches and understand their trade-offs
 4. Experiment with hyperparameters and architecture modifications
 
-## �📊 Results & Visualization
+## 📊 Results & Visualization
 
-The model's performance is evaluated on the test set, and the results are visualized in the following plots (saved in `plots_output/`):
+The model's performance is evaluated on the test set, and the results are visualized in the following plots (saved in `plots/`):
 
 ### 📊 BiLSTM Results
 
 **Training History**
-![BiLSTM Training History](plots_output/training_history.png)
+![BiLSTM Training History](plots/bilstm_training_history.png)
 
 **Confusion Matrix**
-![BiLSTM Confusion Matrix](plots_output/confusion_matrix.png)
+![BiLSTM Confusion Matrix](plots/bilstm_confusion_matrix.png)
 
 **PCA Analysis**
-![BiLSTM PCA Boxplot](plots_output/pca_boxplot.png)
+![BiLSTM PCA Boxplot](plots/bilstm_pca_boxplot.png)
 
 **Performance Dashboard**
-![BiLSTM Comprehensive Metrics](plots_output/comprehensive_metrics.png)
+![BiLSTM Comprehensive Metrics](plots/bilstm_comprehensive_metrics.png)
 
 **Weight Analysis**
-![BiLSTM Weights Heatmap](plots_output/weights_heatmap.png)
+![BiLSTM Weights Heatmap](plots/bilstm_weights_heatmap.png)
 
 ### 📊 Transformer Results
 
 **Training History**
-![Transformer Training History](plots_output/transformer_training_history.png)
+![Transformer Training History](plots/transformer_training_history.png)
 
 **Confusion Matrix**
-![Transformer Confusion Matrix](plots_output/transformer_confusion_matrix.png)
+![Transformer Confusion Matrix](plots/transformer_confusion_matrix.png)
 
 **PCA Analysis**
-![Transformer PCA Boxplot](plots_output/transformer_pca_boxplot.png)
+![Transformer PCA Boxplot](plots/transformer_pca_boxplot.png)
 
 **Performance Dashboard**
-![Transformer Comprehensive Metrics](plots_output/transformer_comprehensive_metrics.png)
+![Transformer Comprehensive Metrics](plots/transformer_comprehensive_metrics.png)
 
 ## 📄 License
 

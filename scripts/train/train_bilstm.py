@@ -25,20 +25,20 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
-from src.data_processing import (
+from utils.data_processing import (
     data_loader,
     data_preprocess,
     apply_pca,
     prepare_data
 )
 
-from src.bilstm_model import (
+from models.architectures.bilstm_model import (
     GestureRNN,
     train_model,
     evaluate_model
 )
 
-from src.plots import (
+from utils.plots import (
     plot_training_history,
     plot_confusion_matrix,
     plot_comprehensive_metrics,
@@ -66,7 +66,7 @@ def main():
     # Load data
     print("LOADING DATA")
     print("\n" * 2)
-    data, labels = data_loader('./DYLEM-GRID', 'Raw')
+    data, labels = data_loader('../../data/DYLEM-GRID', 'Raw')
     print(f"Loaded {len(data):,} samples")
 
     # Show label distribution
@@ -93,7 +93,7 @@ def main():
 
     # Generate PCA boxplot visualization
     print("Creating PCA boxplot visualization...")
-    plot_pca_boxplot(data, labels, filename='plots_output/bilstm_pca_boxplot.png')
+    plot_pca_boxplot(data, labels, filename='../../plots/bilstm_pca_boxplot.png')
     print("\n" * 3)
 
     # Prepare data for PyTorch
@@ -180,24 +180,24 @@ def main():
     print("\n" * 2)
     print("Creating enhanced training history plot...")
     plot_training_history(train_losses, val_losses, train_accs, val_accs, best_stats, 
-                                                  filename='plots_output/bilstm_training_history.png')
+                                                  filename='../../plots/bilstm_training_history.png')
 
     print("Generating detailed confusion matrix...")
     plot_confusion_matrix(val_targets, val_preds, label_encoder.classes_, val_acc, best_stats['epoch'],
-                         filename='plots_output/bilstm_confusion_matrix.png')
+                         filename='../../plots/bilstm_confusion_matrix.png')
 
     print("Building comprehensive metrics dashboard...")
     plot_comprehensive_metrics(val_targets, val_preds, label_encoder.classes_, val_acc, best_stats['epoch'],
                              train_losses, val_losses, train_accs, val_accs, best_stats,
-                             filename='plots_output/comprehensive_metrics.png')
+                             filename='../../plots/bilstm_comprehensive_metrics.png')
 
     print("Creating model weights heatmap...")
     plot_model_weights_heatmap(model, label_encoder.classes_, best_stats['epoch'],
-                              filename='plots_output/weights_heatmap.png')
+                              filename='../../plots/bilstm_weights_heatmap.png')
 
     print("Creating LSTM weights heatmap...")
     plot_lstm_weights_heatmap(model, best_stats['epoch'],
-                             filename='plots_output/lstm_weights_heatmap.png')
+                             filename='../../plots/bilstm_lstm_weights_heatmap.png')
     print("\n" * 3)
 
     # Save model
@@ -213,8 +213,8 @@ def main():
         'best_stats': best_stats,
         'best_val_preds': best_val_preds,
         'best_val_targets': best_val_targets
-    }, 'gesture_rnn_model.pth')
-    print("Model saved as 'gesture_rnn_model.pth'")
+    }, '../../models/checkpoints/gesture_rnn_model.pth')
+    print("Model saved as '../../models/checkpoints/gesture_rnn_model.pth'")
     print("Saved components: model weights, label encoder, configuration")
     print("\n" * 3)
 
@@ -224,10 +224,10 @@ def main():
     print("=" * 80)
     print(f"Final Accuracy: {val_acc:.4f} ({val_acc*100:.2f}%)")
     print(f"Best Epoch: {best_stats['epoch']}")
-    print(f"Output plots: plots_output/bilstm_pca_boxplot.png, plots_output/bilstm_training_history.png,")
-    print(f"              plots_output/bilstm_confusion_matrix.png, plots_output/comprehensive_metrics.png,")
-    print(f"              plots_output/weights_heatmap.png, plots_output/lstm_weights_heatmap.png")
-    print(f"Model checkpoint: gesture_rnn_model.pth")
+    print(f"Output plots: ../../plots/bilstm_pca_boxplot.png, ../../plots/bilstm_training_history.png,")
+    print(f"              ../../plots/bilstm_confusion_matrix.png, ../../plots/bilstm_comprehensive_metrics.png,")
+    print(f"              ../../plots/bilstm_weights_heatmap.png, ../../plots/bilstm_lstm_weights_heatmap.png")
+    print(f"Model checkpoint: ../../models/checkpoints/gesture_rnn_model.pth")
 
 
 if __name__ == "__main__":

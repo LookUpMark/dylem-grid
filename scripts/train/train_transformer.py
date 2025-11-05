@@ -28,11 +28,11 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
-from src.data_processing import data_loader, data_preprocess, apply_pca, prepare_data
+from utils.data_processing import data_loader, data_preprocess, apply_pca, prepare_data
 
-from src.transformer_model import GestureTransformer, train_model, evaluate_model
+from models.architectures.transformer_model import GestureTransformer, train_model, evaluate_model
 
-from src.plots import (
+from utils.plots import (
     plot_training_history,
     plot_confusion_matrix,
     plot_comprehensive_metrics,
@@ -57,7 +57,7 @@ def main():
     # Load data
     print("LOADING DATA")
     print("\n" * 2)
-    data, labels = data_loader("./DYLEM-GRID", "Raw")
+    data, labels = data_loader("../../data/DYLEM-GRID", "Raw")
     print(f"Loaded {len(data):,} samples")
 
     # Show label distribution
@@ -84,7 +84,7 @@ def main():
 
     # Generate PCA boxplot visualization
     print("Creating PCA boxplot visualization...")
-    plot_pca_boxplot(data, labels, filename="plots_output/transformer_pca_boxplot.png")
+    plot_pca_boxplot(data, labels, filename="../../plots/transformer_pca_boxplot.png")
     print("\n" * 3)
 
     # Prepare data for PyTorch
@@ -231,7 +231,7 @@ def main():
         train_accs,
         val_accs,
         best_stats,
-        filename="plots_output/transformer_training_history.png",
+        filename="../../plots/transformer_training_history.png",
     )
 
     print("Generating detailed confusion matrix...")
@@ -241,7 +241,7 @@ def main():
         label_encoder.classes_,
         val_acc,
         best_stats["epoch"],
-        filename="plots_output/transformer_confusion_matrix.png",
+        filename="../../plots/transformer_confusion_matrix.png",
     )
 
     print("Building comprehensive metrics dashboard...")
@@ -256,7 +256,7 @@ def main():
         train_accs,
         val_accs,
         best_stats,
-        filename="plots_output/transformer_comprehensive_metrics.png",
+        filename="../../plots/transformer_comprehensive_metrics.png",
     )
     print("\n" * 3)
 
@@ -278,7 +278,7 @@ def main():
             "best_val_preds": best_val_preds,
             "best_val_targets": best_val_targets,
         },
-        "gesture_transformer_model.pth",
+        "../../models/checkpoints/gesture_transformer_model.pth",
     )
     print("Model saved as 'gesture_transformer_model.pth'")
     print("Saved components: model weights, label encoder, configuration")

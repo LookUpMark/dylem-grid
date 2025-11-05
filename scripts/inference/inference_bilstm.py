@@ -6,17 +6,17 @@ Load a trained model and make predictions on new data
 import torch
 import pandas as pd
 import numpy as np
-from src.transformer_model import GestureTransformer
-from src.data_processing import prepare_data
+from models.architectures.bilstm_model import GestureRNN
+from utils.data_processing import prepare_data
 
 
-def load_model(model_path="gesture_transformer_model.pth"):
+def load_model(model_path='../../models/checkpoints/gesture_rnn_model.pth'):
     """
-    Load a trained transformer model from file
-
+    Load a trained model from file
+    
     Args:
         model_path: Path to the saved model
-
+    
     Returns:
         model: Loaded PyTorch model
         label_encoder: Fitted LabelEncoder
@@ -24,85 +24,75 @@ def load_model(model_path="gesture_transformer_model.pth"):
     """
     # Load with weights_only=False since we're loading sklearn objects
     # Only do this if you trust the source of the checkpoint
-    checkpoint = torch.load(
-        model_path, map_location=torch.device("cpu"), weights_only=False
-    )
-
+    checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=False)
+    
     # Extract model configuration
     config = {
-        "input_size": checkpoint["input_size"],
-        "d_model": checkpoint["d_model"],
-        "nhead": checkpoint["nhead"],
-        "num_layers": checkpoint["num_layers"],
-        "dim_feedforward": checkpoint["dim_feedforward"],
-        "num_classes": checkpoint["num_classes"],
-        "dropout": checkpoint.get("dropout", 0.1),
+        'input_size': checkpoint['input_size'],
+        'hidden_size': checkpoint['hidden_size'],
+        'num_layers': checkpoint['num_layers'],
+        'num_classes': checkpoint['num_classes']
     }
-
+    
     # Initialize model
-    model = GestureTransformer(
-        input_size=config["input_size"],
-        d_model=config["d_model"],
-        nhead=config["nhead"],
-        num_layers=config["num_layers"],
-        dim_feedforward=config["dim_feedforward"],
-        num_classes=config["num_classes"],
-        dropout=config["dropout"],
+    model = GestureRNN(
+        config['input_size'],
+        config['hidden_size'],
+        config['num_layers'],
+        config['num_classes']
     )
-
+    
     # Load weights
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-
-    label_encoder = checkpoint["label_encoder"]
-
+    
+    label_encoder = checkpoint['label_encoder']
+    
     return model, label_encoder, config
 
 
-def predict_gesture(model, data, label_encoder, device="cpu"):
+def predict_gesture(model, data, label_encoder, device='cpu'):
     """
     Make predictions on new data
-
+    
     Args:
         model: Trained PyTorch model
         data: Input tensor of shape (batch_size, seq_len, features)
         label_encoder: Fitted LabelEncoder
         device: Device to run on
-
+    
     Returns:
         predictions: List of predicted class names
         probabilities: Numpy array of class probabilities
     """
     model.to(device)
     model.eval()
-
+    
     with torch.no_grad():
         data = data.to(device)
         outputs = model(data)
         probabilities = torch.softmax(outputs, dim=1)
         _, predicted_indices = torch.max(outputs, 1)
-
+    
     predictions = label_encoder.inverse_transform(predicted_indices.cpu().numpy())
     probabilities = probabilities.cpu().numpy()
-
+    
     return predictions, probabilities
 
 
 def main():
     print("LOADING MODEL")
     print("\n" * 2)
-    model, label_encoder, config = load_model("gesture_transformer_model.pth")
-
+    model, label_encoder, config = load_model('../../models/checkpoints/gesture_rnn_model.pth')
+    
     print("\n" * 3)
     print("MODEL CONFIGURATION")
     print("\n" * 2)
     print(f"  Input size: {config['input_size']}")
-    print(f"  Model dimension: {config['d_model']}")
-    print(f"  Attention heads: {config['nhead']}")
+    print(f"  Hidden size: {config['hidden_size']}")
     print(f"  Num layers: {config['num_layers']}")
-    print(f"  Feedforward dim: {config['dim_feedforward']}")
     print(f"  Classes: {label_encoder.classes_}")
-
+    
     print("\n" * 3)
     print("USAGE INSTRUCTIONS")
     print("\n" * 2)
