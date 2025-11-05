@@ -20,13 +20,14 @@ This project implements deep learning models for dynamic gesture recognition usi
 - [🏆 Performance Results](#-performance-results)
 - [📈 Model Comparison & Analysis](#-model-comparison--analysis)
 - [🚀 Getting Started](#-getting-started)
-  - [Installation](#-installation)
-  - [Recommended Workflow](#-recommended-workflow)
-  - [Hyperparameter Optimization](#-hyperparameter-optimization)
-  - [Training](#-training)
-  - [Inference & Prediction](#-inference--prediction)
-- [� Kaggle Notebooks](#-kaggle-notebooks)
-- [�📊 Results & Visualization](#-results--visualization)
+  - [Installation](#installation)
+  - [Experiment Tracking with Weights & Biases](#experiment-tracking-with-weights--biases)
+  - [Recommended Workflow](#recommended-workflow)
+  - [Hyperparameter Optimization](#hyperparameter-optimization)
+  - [Training](#training)
+  - [Inference & Prediction](#inference--prediction)
+- [📓 Kaggle Notebooks](#-kaggle-notebooks)
+- [📊 Results & Visualization](#-results--visualization)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -41,7 +42,7 @@ The goal of this project is to accurately classify dynamic gestures based on tim
 
 ```
 dylem-grid/
-├── � Notebooks (Root)
+├── 📓 Notebooks (Root)
 │   ├── kaggle_bilstm_example.ipynb               # BiLSTM tutorial notebook
 │   └── kaggle_transformer_example.ipynb          # Transformer tutorial notebook
 │
@@ -89,27 +90,6 @@ dylem-grid/
 │   └── run-*/                                    # W&B experiment runs
 │
 ├── 📂 results/                                   # Optimization results (not tracked)
-│   └── optuna/
-│       ├── bilstm/                               # BiLSTM optimization artifacts
-│       │   ├── optuna_study.pkl                  # Optuna study object
-│       │   ├── optuna_results.json               # Best hyperparameters & stats
-│       │   └── *.png                             # Optimization visualizations
-│       └── transformer/                          # Transformer optimization artifacts
-│           ├── transformer_optuna_study.pkl      # Optuna study object
-│           ├── transformer_optuna_results.json   # Best hyperparameters & stats
-│           └── *.png                             # Optimization visualizations
-│
-└── 📄 Configuration Files
-    ├── requirements.txt                          # Python dependencies
-    ├── .gitignore                                # Git ignore rules
-    ├── LICENSE                                   # MIT License
-    └── README.md                                 # This file
-```
-│
-├── 📂 checkpoints/                               # W&B run checkpoints
-│   └── wandb/                                    # Weights & Biases logs
-│
-├── � results/                                   # Optimization results (not tracked)
 │   └── optuna/
 │       ├── bilstm/                               # BiLSTM optimization artifacts
 │       │   ├── optuna_study.pkl                  # Optuna study object
