@@ -1,0 +1,14 @@
+torch
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+tqdm
+
+# Hyperparameter Optimization (Recommended: Optuna)
+optuna
+optuna-dashboard
+plotly
+kaleido
+joblib
