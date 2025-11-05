@@ -222,13 +222,13 @@ Both models achieve exceptional performance on the DYLEM-GRID dataset after hype
 
 | Model | Test Accuracy | Parameters | Training Time | Best Hyperparameters |
 |-------|---------------|------------|---------------|---------------------|
-| **BiLSTM + Attention** | **100%** | 67,365 | ~2-3 minutes | Hidden: 32, Layers: 3, LR: 5.6e-4 |
-| **Transformer** | **100%** | 31,108 | ~1-2 minutes | d_model: 64, Heads: 4, Layers: 1 |
+| **BiLSTM + Attention** | **100%** | 42,277 | ~2-3 minutes | Hidden: 32, Layers: 2, LR: 5.63e-3, Dropout: 0.113 |
+| **Transformer** | **100%** | 11,652 | ~1-2 minutes | d_model: 32, Heads: 8, Layers: 1, LR: 9.80e-3 |
 
 ### 🎯 Key Achievements
 
 - **Perfect Classification**: Both models achieve 100% accuracy on the test set
-- **Efficient Models**: Transformer achieves perfect performance with 54% fewer parameters
+- **Efficient Models**: Transformer achieves perfect performance with 72% fewer parameters
 - **Robust Training**: Consistent results across multiple optimization trials
 - **Fast Convergence**: Models typically converge within 10-20 epochs
 
@@ -236,16 +236,17 @@ Both models achieve exceptional performance on the DYLEM-GRID dataset after hype
 
 **BiLSTM Optimization:**
 - Total Trials: 100
-- Completed Trials: 58
-- Pruned Trials: 42
-- Best Trial: #37
+- Completed Trials: 60
+- Pruned Trials: 40
+- Best Trial: #17
 - Optimization Time: ~15 minutes
 
 **Transformer Optimization:**
-- Total Trials: 10
-- Completed Trials: 10
-- Best Trial: #8
-- Optimization Time: ~5 minutes
+- Total Trials: 100
+- Completed Trials: 66
+- Pruned Trials: 34
+- Best Trial: #13
+- Optimization Time: ~20 minutes
 
 ### 🔬 Best Hyperparameters
 
@@ -253,27 +254,27 @@ Both models achieve exceptional performance on the DYLEM-GRID dataset after hype
 ```python
 {
     "hidden_size": 32,
-    "num_layers": 3,
-    "learning_rate": 0.000564,
-    "dropout": 0.414,
+    "num_layers": 2,
+    "learning_rate": 0.00563,
+    "dropout": 0.113,
     "optimizer": "nadam",
-    "weight_decay": 2.2e-05,
-    "batch_size": 32
+    "weight_decay": 1.64e-06,
+    "batch_size": 64
 }
 ```
 
 **Transformer Configuration:**
 ```python
 {
-    "d_model": 64,
-    "nhead": 4,
+    "d_model": 32,
+    "nhead": 8,
     "num_layers": 1,
     "dim_feedforward": 64,
-    "dropout": 0.494,
-    "learning_rate": 0.001082,
-    "weight_decay": 1.03e-05,
+    "dropout": 0.382,
+    "learning_rate": 0.00980,
+    "weight_decay": 1.26e-05,
     "batch_size": 32,
-    "optimizer": "Adam"
+    "optimizer": "NAdam"
 }
 ```
 
@@ -298,7 +299,7 @@ This utility provides:
 ### Performance Insights
 
 1. **Transformer Advantages**:
-   - 54% fewer parameters than BiLSTM
+   - 72% fewer parameters than BiLSTM (11,652 vs 42,277)
    - Faster training and inference
    - Better parallelization capabilities
    - More interpretable attention patterns
