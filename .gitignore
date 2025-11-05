@@ -1,0 +1,71 @@
+# Python virtual environment
+.venv
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyTorch model checkpoints
+models/checkpoints/*.pth
+!models/checkpoints/.gitkeep
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dataset (add if large)
+data/DYLEM-GRID/
+
+# Plots output (optional - uncomment if you don't want to track plots)
+# plots/*.png
+# plots/*.jpg
+# plots/*.pdf
+
+# Weights and Biases
+checkpoints/wandb/
+wandb/
+
+# Optuna results
+*.db
+optuna_results.json
+transformer_optuna_results.json
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+tmp/
+temp/
