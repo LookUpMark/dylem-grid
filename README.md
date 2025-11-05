@@ -280,21 +280,7 @@ Both models achieve exceptional performance on the DYLEM-GRID dataset after hype
 
 ## 📈 Model Comparison & Analysis
 
-The repository includes comprehensive tools for model comparison and performance analysis:
-
-### Model Comparison Utility
-
-Use the built-in comparison tool to analyze trained models:
-
-```bash
-python compare_models.py
-```
-
-This utility provides:
-- **Performance Metrics**: Accuracy, loss, parameter count
-- **Model Efficiency**: Size vs performance trade-offs
-- **Training Statistics**: Convergence analysis
-- **Visualization Support**: Integrated with plotting utilities
+Both models achieve perfect classification performance with different architectural approaches:
 
 ### Performance Insights
 
