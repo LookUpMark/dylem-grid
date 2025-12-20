@@ -74,3 +74,5 @@ transformer_optuna_study.pkl
 *.tmp
 tmp/
 temp/
+
+*.pth
