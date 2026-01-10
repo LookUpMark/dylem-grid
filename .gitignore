@@ -1,78 +1,57 @@
-# Python virtual environment
-.venv
+# Virtual environment
+.venv/
 venv/
 env/
+.env
 
 # Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
 
-# Distribution / packaging
+# Distribution
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
-# PyTorch model checkpoints
+# Model checkpoints
+models/checkpoints/*.ckpt
 models/checkpoints/*.pth
 !models/checkpoints/.gitkeep
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Dataset (auto-downloaded)
+data/DYLEM-GRID/
+~/.cache/dylem-grid/
+
+# Jupyter
+.ipynb_checkpoints/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Dataset (add if large)
-data/DYLEM-GRID/
-
-# Plots output (optional - uncomment if you don't want to track plots)
-# plots/*.png
-# plots/*.jpg
-# plots/*.pdf
-
-# Weights and Biases
-checkpoints/wandb/
+# Experiment tracking
 wandb/
+lightning_logs/
 
-# Optuna results
-*.db
-optuna_results.json
-transformer_optuna_results.json
-
-# Optuna artifacts and local results (do not commit)
+# Results (regenerated)
 results/
+logs/
+
+# Optuna
+*.db
 optuna_study.pkl
-transformer_optuna_study.pkl
+optuna_results.json
 
-# Logs
+# Temporary
 *.log
-
-# Temporary files
 *.tmp
 tmp/
-temp/
-
-*.pth

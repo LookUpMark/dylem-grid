@@ -1,3 +1,4 @@
+# Core
 torch
 pandas
 numpy
@@ -6,12 +7,24 @@ seaborn
 scikit-learn
 tqdm
 
-# Experiment Tracking (Recommended)
+# PyTorch Lightning
+pytorch-lightning>=2.0
+torchmetrics>=1.0
+rich
+
+# Hugging Face Hub
+huggingface_hub
+
+# Experiment Tracking
 wandb
 
-# Hyperparameter Optimization (Recommended: Optuna)
+# Hyperparameter Optimization
 optuna
+optuna-integration
 optuna-dashboard
 plotly
 kaleido
 joblib
+
+# Configuration
+pyyaml
