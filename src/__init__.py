@@ -1,33 +1,19 @@
 # DYLEM-GRID Source Package
-
-"""
-Modern, modular implementation using PyTorch Lightning.
-
-Modules:
-    - data: Data loading and preprocessing with LightningDataModule
-    - models: Lightning-based model implementations
-    - training: Cross-validation and callbacks
-    - optimization: Optuna hyperparameter optimization
-    - ablation: Ablation study framework
-    - hub: Hugging Face Hub integration
-"""
+"""Modern gesture recognition with PyTorch Lightning."""
 
 from src.data import GestureDataModule
 from src.models import BiLSTMModule, TransformerModule
 from src.training import CrossValidator
-from src.optimization import OptunaObjective
+from src.optimization import OptunaObjective, BiLSTMSearchSpace, TransformerSearchSpace
 from src.hub import get_model, save_to_hub, load_from_hub
+from src.ablation import AblationRunner, BILSTM_ABLATIONS, TRANSFORMER_ABLATIONS
+from src.utils import suppress_logs
 
 __all__ = [
-    "GestureDataModule",
-    "BiLSTMModule",
-    "TransformerModule",
-    "CrossValidator",
-    "OptunaObjective",
-    "get_model",
-    "save_to_hub",
-    "load_from_hub",
+    "GestureDataModule", "BiLSTMModule", "TransformerModule", "CrossValidator",
+    "OptunaObjective", "BiLSTMSearchSpace", "TransformerSearchSpace",
+    "get_model", "save_to_hub", "load_from_hub",
+    "AblationRunner", "BILSTM_ABLATIONS", "TRANSFORMER_ABLATIONS",
+    "suppress_logs"
 ]
-
 __version__ = "2.0.0"
-

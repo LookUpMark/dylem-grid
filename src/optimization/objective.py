@@ -2,7 +2,12 @@
 import json
 from pathlib import Path
 from typing import Any, Optional, Type
+import logging
 import optuna
+# Suppress Optuna logs
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+logging.getLogger("optuna").setLevel(logging.WARNING)
+
 from optuna import Trial
 from optuna.integration import PyTorchLightningPruningCallback
 from pytorch_lightning import LightningModule, Trainer

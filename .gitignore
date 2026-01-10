@@ -20,6 +20,7 @@ dist/
 models/checkpoints/*.ckpt
 models/checkpoints/*.pth
 !models/checkpoints/.gitkeep
+notebooks/checkpoints/
 
 # Dataset (auto-downloaded)
 data/DYLEM-GRID/
@@ -55,3 +56,4 @@ optuna_results.json
 *.log
 *.tmp
 tmp/
+=4.2.0

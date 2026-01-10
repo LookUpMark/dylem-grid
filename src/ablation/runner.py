@@ -100,9 +100,16 @@ class AblationRunner:
         
         self.dm.setup()
         model = self.model_class(input_size=self.dm.input_size, num_classes=self.dm.num_classes, **params)
-        trainer = Trainer(max_epochs=self.config.training_params.get("max_epochs", 50),
-                         callbacks=[BestModelCallback(), EarlyStopping("val_acc", mode="max", patience=10, verbose=False)],
-                         logger=False, enable_progress_bar=False, enable_model_summary=False, **self.trainer_kwargs)
+        trainer_args = {
+            "max_epochs": self.config.training_params.get("max_epochs", 50),
+            "callbacks": [BestModelCallback(), EarlyStopping("val_acc", mode="max", patience=10, verbose=False)],
+            "logger": False,
+            "enable_progress_bar": False,
+            "enable_model_summary": False,
+        }
+        trainer_args.update(self.trainer_kwargs)
+        
+        trainer = Trainer(**trainer_args)
         trainer.fit(model, self.dm)
         m = trainer.callback_metrics
         return AblationResult(name, param, val, m.get("val_acc", 0).item(), 0, m.get("val_f1", 0).item(), 0)

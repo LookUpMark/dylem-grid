@@ -28,7 +28,7 @@ class GestureDataModule(LightningDataModule):
     def __init__(self, data_path: Optional[str] = None, data_type: str = "Cleaned",
                  batch_size: int = 32, pca_variance: float = 0.95, val_split: float = 0.2,
                  test_split: float = 0.0, cv_fold: Optional[int] = None, n_folds: int = 5,
-                 seed: int = 42, num_workers: int = 0, force_download: bool = False):
+                 seed: int = 42, num_workers: int = 4, force_download: bool = False):
         super().__init__()
         self.save_hyperparameters()
         self.data_path, self.data_type = data_path, data_type

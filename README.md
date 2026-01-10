@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch Lightning](https://img.shields.io/badge/Lightning-2.0+-792ee5.svg)](https://lightning.ai/)
-[![Dataset](https://img.shields.io/badge/🤗-Dataset-orange.svg)](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID)
+[![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-orange.svg)](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID)
 
 Deep learning for dynamic gesture recognition using BiLSTM and Transformer models.
 
@@ -15,14 +15,23 @@ cd dylem-grid
 pip install -r requirements.txt
 ```
 
-Open notebooks in `notebooks/` to train, optimize, or run inference.
+## Notebooks
+
+| Notebook | Purpose | Time |
+|----------|---------|------|
+| `01_optimization.ipynb` | Optuna hyperparameter search | ~1 hour |
+| `02_training.ipynb` | Train models with optimized params | ~30 min |
+| `03_inference.ipynb` | Evaluate with confusion matrices | ~2 min |
+| `04_ablation.ipynb` | Component analysis | ~2 hours |
+
+**Workflow**: `01_optimization` → `02_training` → `03_inference`
 
 ## Models
 
 | Model | Architecture | Accuracy |
 |-------|--------------|----------|
-| **BiLSTM** | Bidirectional LSTM + Attention | 100% |
-| **Transformer** | Encoder-only + Self-Attention | 100% |
+| BiLSTM | Bidirectional LSTM + Attention | 100% |
+| Transformer | Encoder-only + Self-Attention | 100% |
 
 ## Structure
 
@@ -32,58 +41,29 @@ dylem-grid/
 │   ├── data/               # GestureDataModule
 │   ├── models/             # BiLSTM, Transformer
 │   ├── training/           # CrossValidator
-│   ├── optimization/       # Optuna integration
+│   ├── optimization/       # Optuna
 │   ├── ablation/           # Ablation studies
-│   └── hub.py              # HuggingFace Hub
+│   ├── hub.py              # HuggingFace Hub
+│   └── visualization.py    # Plot helpers
 ├── notebooks/              # Jupyter notebooks
-│   ├── train.ipynb         # Training & CV
-│   ├── optimize.ipynb      # Hyperparameter search
-│   ├── inference.ipynb     # Evaluation
-│   └── ablation.ipynb      # Ablation studies
-└── models/checkpoints/     # Saved models
+└── results/                # Output (params, metrics)
 ```
 
-## Usage
-
-### Python API
+## Python API
 
 ```python
-from src import GestureDataModule, BiLSTMModule, CrossValidator, get_model
+from src import GestureDataModule, BiLSTMModule, CrossValidator
 
-# Data (auto-downloads from HuggingFace)
-dm = GestureDataModule()
+dm = GestureDataModule()  # Auto-downloads from HuggingFace
 dm.setup()
 
-# Cross-validation
 cv = CrossValidator(BiLSTMModule, dm, n_folds=5)
 results = cv.run({"hidden_size": 64})
-
-# Inference
-model = get_model("bilstm")  # Local or Hub
 ```
-
-### Notebooks
-
-| Notebook | Purpose |
-|----------|---------|
-| `train.ipynb` | Train models with optional cross-validation |
-| `optimize.ipynb` | Optuna hyperparameter optimization |
-| `inference.ipynb` | Run inference with visualizations |
-| `ablation.ipynb` | Systematic ablation studies |
 
 ## Dataset
 
-[DYLEM-GRID](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID) contains 400 recordings of 4 gestures:
-- Air Quotes, Finger Wagging, Waving, Zoom
-
-Auto-downloads on first use.
-
-## Features
-
-- **PyTorch Lightning** - Modular training
-- **K-Fold CV** - Robust evaluation
-- **Optuna** - Hyperparameter optimization
-- **HuggingFace Hub** - Dataset & model hosting
+[DYLEM-GRID](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID): 400 recordings of 4 gestures. Auto-downloads on first use.
 
 ## License
 

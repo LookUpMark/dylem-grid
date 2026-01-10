@@ -80,8 +80,16 @@ class CrossValidator:
         best_cb = BestModelCallback("val_acc", "max")
         early_cb = EarlyStopping("val_acc", mode="max", patience=patience, verbose=False)
         
-        trainer = Trainer(max_epochs=50, callbacks=[best_cb, early_cb], logger=False,
-                          enable_progress_bar=False, enable_model_summary=False, **self.trainer_kwargs)
+        trainer_args = {
+            "max_epochs": 50,
+            "callbacks": [best_cb, early_cb],
+            "logger": False,
+            "enable_progress_bar": False,
+            "enable_model_summary": False,
+        }
+        trainer_args.update(self.trainer_kwargs)
+        
+        trainer = Trainer(**trainer_args)
         trainer.fit(model, self.dm)
         
         m = trainer.callback_metrics
