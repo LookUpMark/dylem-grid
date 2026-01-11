@@ -30,8 +30,8 @@ pip install -r requirements.txt
 
 | Model | Architecture | Accuracy |
 |-------|--------------|----------|
-| BiLSTM | Bidirectional LSTM + Attention | 100% |
-| Transformer | Encoder-only + Self-Attention | 100% |
+| BiLSTM | Bidirectional LSTM + Attention | 97.25% ± 0.94% |
+| Transformer | Encoder-only + Self-Attention | 94.75% ± 0.94% |
 
 ## Structure
 
