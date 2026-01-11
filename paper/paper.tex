@@ -304,6 +304,27 @@ Our ablation studies reveal several important insights into the design choices t
 
 \textbf{BiLSTM is Less Sensitive to Depth}: In contrast to the Transformer, BiLSTM performance varies minimally across layer configurations: 96.00\% with 1 layer, 96.75\% with 2 layers, and 96.25\% with 3 layers. This robustness suggests that the recurrent structure and attention mechanism together provide sufficient modeling capacity even with minimal depth. The inductive bias of recurrence---processing sequences step-by-step with shared parameters---appears well-suited to the temporal structure of gesture data and may reduce sample complexity compared to the more general Transformer architecture.
 
+\subsection{Qualitative Analysis}
+To better understand the models' decision-making processes, we visualized the attention weights assigned to different time steps (for BiLSTM) and the self-attention maps (for Transformer).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/bilstm_attention_maps.png}
+\caption{BiLSTM attention weights visualized as heatmaps for validation samples. The model learns to focus on specific, highly discriminative temporal segments (bright yellow regions) corresponding to the core gesture motion, effectively filtering out pre- and post-gesture idle states.}
+\label{fig:bilstm_attn}
+\end{figure}
+
+Figure~\ref{fig:bilstm_attn} illustrates the attention distributions for the BiLSTM model. The heatmaps reveal a clear, concentrated focus on specific temporal windows. For dynamic gestures like ``waving'' or ``finger wagging,'' the model assigns high attention weights (0.6--0.8) to the active phases of the motion while ignoring the static start and end periods. This capability to temporally localize the gesture explains the BiLSTM's high efficiency and noise robustness: it effectively acts as a learned temporal filter, prioritizing relevant frames for the final classification.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/transformer_attention_maps.png}
+\caption{Transformer self-attention maps (averaged across heads) for the last encoder layer. The patterns are more distributed compared to the sharp focus of BiLSTM, often showing diagonal structures that attend to immediate temporal neighbors or broad attention across the sequence.}
+\label{fig:transformer_attn}
+\end{figure}
+
+In contrast, the Transformer self-attention maps (Figure~\ref{fig:transformer_attn}) display more diffuse patterns. While some diagonal structures suggest attention to local temporal neighborhoods, the overall distribution is less peaked than the BiLSTM's. This may indicate that the Transformer relies on aggregating features across a broader context rather than pinpointing a specific ``key frame.'' On this smaller dataset, this distributed attention might introduce more noise into the final representation compared to the BiLSTM's sharp temporal selection, contributing to the observed performance difference.
+
 \section{Discussion}
 
 \subsection{Statistical Significance}
