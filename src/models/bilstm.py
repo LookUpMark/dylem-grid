@@ -30,5 +30,13 @@ class BiLSTMModule(GestureBaseModule):
             out = out[:, -1, :]
         return self.classifier(out)
 
+    def forward_with_attention(self, x: Tensor) -> tuple[Tensor, Tensor | None]:
+        """Forward returning (logits, attention_weights)."""
+        out, _ = self.lstm(x)
+        if self.use_attention:
+            weights = torch.softmax(self.attention(out), dim=1)
+            return self.classifier((weights * out).sum(dim=1)), weights
+        return self.classifier(out[:, -1, :]), None
+
 
 GestureRNN = BiLSTMModule  # Backward compat

@@ -36,13 +36,25 @@ class TransformerModule(GestureBaseModule):
         self.classifier = nn.Sequential(nn.Linear(d_model, dim_feedforward), nn.GELU(),
                                          nn.Dropout(dropout), nn.Linear(dim_feedforward, self.hparams.num_classes))
 
+    def _pool(self, x: Tensor) -> Tensor:
+        if self.pooling == "max": return x.max(dim=1)[0]
+        elif self.pooling == "cls": return x[:, 0]
+        return x.mean(dim=1)
+
     def forward(self, x: Tensor) -> Tensor:
         x = self.pos_encoder(self.input_proj(x))
-        x = self.encoder(x)
-        if self.pooling == "max": x = x.max(dim=1)[0]
-        elif self.pooling == "cls": x = x[:, 0]
-        else: x = x.mean(dim=1)
-        return self.classifier(x)
+        return self.classifier(self._pool(self.encoder(x)))
+
+    def forward_with_attention(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
+        """Forward returning (logits, attention_maps_per_layer)."""
+        hidden = self.pos_encoder(self.input_proj(x))
+        attention_maps = []
+        for layer in self.encoder.layers:
+            attn_out, attn_weights = layer.self_attn(hidden, hidden, hidden, need_weights=True, average_attn_weights=False)
+            attention_maps.append(attn_weights)
+            hidden = layer.norm1(hidden + layer.dropout1(attn_out))
+            hidden = layer.norm2(hidden + layer._ff_block(hidden))
+        return self.classifier(self._pool(hidden)), attention_maps
 
 
-GestureTransformer = TransformerModule  # Backward compat
+GestureTransformer = TransformerModule
