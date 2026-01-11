@@ -28,7 +28,8 @@ class GestureDataModule(LightningDataModule):
     def __init__(self, data_path: Optional[str] = None, data_type: str = "Cleaned",
                  batch_size: int = 32, pca_variance: float = 0.95, val_split: float = 0.2,
                  test_split: float = 0.0, cv_fold: Optional[int] = None, n_folds: int = 5,
-                 seed: int = 42, num_workers: int = 4, force_download: bool = False):
+                 seed: int = 42, num_workers: int = 4, force_download: bool = False,
+                 balance_classes: bool = True):
         super().__init__()
         self.save_hyperparameters()
         self.data_path, self.data_type = data_path, data_type
@@ -36,6 +37,7 @@ class GestureDataModule(LightningDataModule):
         self.val_split, self.test_split = val_split, test_split
         self.cv_fold, self.n_folds, self.seed = cv_fold, n_folds, seed
         self.num_workers, self.force_download = num_workers, force_download
+        self.balance_classes = balance_classes
         self.train_dataset = self.val_dataset = self.test_dataset = None
         self.label_encoder, self.input_size, self.num_classes = None, 0, 0
         self.class_names, self._resolved_path = [], None
@@ -106,7 +108,30 @@ class GestureDataModule(LightningDataModule):
         proc, idx = [], 0
         for n in lengths: proc.append(concat.iloc[idx:idx+n].copy()); idx += n
         combined = list(zip(proc, labels)); random.shuffle(combined)
+        
+        if self.balance_classes:
+            combined = self._balance_data(combined)
+            
         return list(zip(*combined))
+
+    def _balance_data(self, combined_data):
+        """Oversample minority classes to match majority class count."""
+        from collections import defaultdict
+        by_label = defaultdict(list)
+        for item in combined_data:
+            by_label[item[1]].append(item)
+            
+        max_count = max(len(items) for items in by_label.values())
+        balanced = []
+        for label, items in by_label.items():
+            if len(items) < max_count:
+                # Oversample
+                extras = random.choices(items, k=max_count - len(items))
+                balanced.extend(items + extras)
+            else:
+                balanced.extend(items)
+        random.shuffle(balanced)
+        return balanced
 
     def _apply_pca(self, data, labels):
         lengths = [len(df) for df in data]
