@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch Lightning](https://img.shields.io/badge/Lightning-2.0+-792ee5.svg)](https://lightning.ai/)
-[![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-DYLEM--GRID-orange)](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID)
+[![HuggingFace](https://img.shields.io/badge/Hugging_Face-DYLEM--GRID-orange)](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID)
 
 State-of-the-art Dynamic Hand Gesture Recognition (D-HGR) using **BiLSTM with Attention** and **Transformer** architectures on the [DYLEM-GRID dataset](https://huggingface.co/datasets/LookUpMark/DYLEM-GRID).
 
@@ -11,7 +11,7 @@ This repository contains the official PyTorch Lightning implementation for the p
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 *   **Modular Pipeline**: Built with [PyTorch Lightning](https://lightning.ai/) for scalable and reproducible training.
 *   **Auto-Tuning**: Integrated [Optuna](https://optuna.org/) hyperparameter optimization.
@@ -19,7 +19,7 @@ This repository contains the official PyTorch Lightning implementation for the p
 *   **Explainable AI**: Built-in visualization of attention mechanisms (Heatmaps).
 *   **Reproducibility**: Automatic dataset download and seeded experiments.
 
-## 📊 Models & Results
+## Models & Results
 
 We benchmarked two architectures on the DYLEM-GRID dataset (400 samples, 4 gesture classes).
 
@@ -30,7 +30,7 @@ We benchmarked two architectures on the DYLEM-GRID dataset (400 samples, 4 gestu
 
 **Key Finding**: The attention mechanism is crucial for BiLSTM, providing a +7% accuracy boost by allowing the model to focus on the active phase of the gesture.
 
-## 👁️ Visualization
+## Visualization
 
 ### BiLSTM Attention Heatmaps
 The model effectively acts as a learned temporal filter, focusing on the core gesture motion and ignoring idle states.
@@ -39,7 +39,7 @@ The model effectively acts as a learned temporal filter, focusing on the core ge
 ### Comparison: BiLSTM vs Transformer
 ![comparison](paper/figures/attention_comparison.png)
 
-## 🛠️ Installation
+## Installation
 
 ```bash
 git clone https://github.com/LookUpMark/dylem-grid.git
@@ -53,7 +53,7 @@ source venv/bin/activate  # on Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## 💻 Usage
+## Usage
 
 The project is organized into numbered notebooks for a clear workflow:
 
@@ -81,7 +81,7 @@ dm.setup()
 model = BiLSTMModule(input_size=dm.input_size, hidden_size=64)
 ```
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 dylem-grid/
@@ -95,7 +95,7 @@ dylem-grid/
 └── results/                # Logs and metrics
 ```
 
-## 📜 Citation
+## Citation
 
 If you use this code or dataset, please cite our work:
 
@@ -109,6 +109,6 @@ If you use this code or dataset, please cite our work:
 }
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
